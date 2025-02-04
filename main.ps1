@@ -47,6 +47,8 @@ try {
             $powershell.AddCommand("Import-Module").AddArgument($module) | Out-Null
         }
 
+        $powershell.AddScript(". '$PSScriptRoot\common.ps1'") | Out-Null
+
         $powershell.AddScript({
             param($context, $routes, $config)
 
