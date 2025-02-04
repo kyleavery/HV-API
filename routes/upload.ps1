@@ -50,14 +50,11 @@ $script:Handler     = {
         }
     }
 
-    $content = Get-RequestContent -Request $Request
-    $buffer  = [Text.Encoding]::UTF8.GetBytes($content)
-
     $hostFilePath = Join-Path $Config.TempPath $([System.IO.Path]::GetRandomFileName())
     Log-Message "Uploading file to $hostFilePath"
 
     $hostFile = New-Object System.IO.FileStream($hostFilePath, [System.IO.FileMode]::Create)
-    $hostFile.Write($buffer, 0, $buffer.Length)
+    $Request.InputStream.CopyTo($hostFile)
     $hostFile.Close()
 
     Log-Message "Copying file to $destinationPath on $vmName"
