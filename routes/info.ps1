@@ -10,6 +10,8 @@ $script:Handler     = {
 
     $vmName = $Matches.vmName
 
+    $enableGuestServices = $Request.QueryString.Get("enableGuestServices")
+
     $vmInfo = @{
         state = 'Unknown'
         guest_services = $false
@@ -40,12 +42,26 @@ $script:Handler     = {
     }
 
     $guestSvc = Get-VMIntegrationService -VMName $vmName -Name "Guest Service Interface"
+    if ($enableGuestServices -eq 'true') {
+        while ($guestSvc.Enabled -eq $false) {
+            try {
+                Enable-VMIntegrationService -VMName $vmName -Name "Guest Service Interface" -ErrorAction Stop
+                Start-Sleep -Seconds 5
+                $guestSvc = Get-VMIntegrationService -VMName $vmName -Name "Guest Service Interface"
+            }
+            catch {
+                Send-Response -Response $Response -StatusCode 500 -Message "Failed to enable Guest Service Interface: $_"
+                return
+            }
+        }
+    }
+
     if ($guestSvc.Enabled) {
         $vmInfo.guest_services = $true
     }
 
     $ipAddrs = $vm | Get-VMNetworkAdapter | Select-Object -ExpandProperty IPAddresses
-    $vmInfo.ip = $ipAddrs | Where-Object { $_ -notlike '127.*' } | Select-Object -First 1
+    $vmInfo.ip = $ipAddrs | Where-Object { $_ -notmatch '^127\.' -and $_ -notmatch '^169\.254\.' -and $_ -match '^\d+\.\d+\.\d+\.\d+$' } | Select-Object -First 1
 
     
     Send-Response -Response $Response -StatusCode 200 -Message ($vmInfo | ConvertTo-Json)
