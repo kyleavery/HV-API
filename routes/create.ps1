@@ -1,3 +1,7 @@
+Import-Module Hyper-V
+Import-Module Microsoft.PowerShell.Security
+
+
 $script:Method      = "POST"
 $script:PathPattern = '^/api/v1/vm$'
 $script:Handler     = {
@@ -61,7 +65,7 @@ $script:Handler     = {
             return
         }
 
-        $vm | Set-VMMemory -DynamicMemoryEnabled $true -MinimumBytes $vmMemory -StartupBytes $vmMemory -MaximumBytes $vmMemory
+        $vm | Set-VMMemory -DynamicMemoryEnabled $true -MinimumBytes $($vmMemory / 2) -StartupBytes $vmMemory -MaximumBytes $vmMemory
         $vm | Set-VMProcessor -Count $vmCpu    
         $vm | Set-VMFirmware -EnableSecureBoot On
         if ($vmTpm) {

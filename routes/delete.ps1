@@ -1,3 +1,7 @@
+Import-Module Hyper-V
+Import-Module Microsoft.PowerShell.Security
+
+
 $script:Method      = "DELETE"
 $script:PathPattern = '^/api/v1/vm/(?<vmName>[^/]+)$'
 $script:Handler     = {
